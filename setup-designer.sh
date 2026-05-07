@@ -7,7 +7,7 @@
 #   Fill in ENV_URL below with the private download link for the .env.local file.
 #   Example: ENV_URL="https://gist.githubusercontent.com/.../raw/.../.env.local"
 #
-ENV_URL="https://gist.githubusercontent.com/martin-iliew/81ef4f030a8ecc418c40f2ea95ec8fe7/raw/.env.local"
+ENV_URL=""  # Fill in the private config URL before sharing this script (shared via Slack)
 # =============================================================================
 
 set -euo pipefail

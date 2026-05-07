@@ -1,114 +1,195 @@
-Set up Onlook from scratch on the designer's Mac. Use friendly, non-technical language throughout. Never show raw error output without explaining what it means in plain words.
+Set up Onlook from scratch. Use friendly, non-technical language throughout. Never show raw error output without explaining what it means in plain words.
+
+The user has passed this config link: `$ARGUMENTS`
+
+---
 
 ## Welcome
 
 Start by saying:
 
-"Welcome! I'm going to set up Onlook on your Mac. This takes about 3–5 minutes. I'll handle everything automatically — just sit back."
+"Welcome! I'm going to set up Onlook on your computer. This takes about 5–10 minutes the first time — mostly waiting for things to download. I'll handle everything and let you know if I need anything from you."
 
-## Detect Re-run
+---
 
-Check these signals to see what's already done:
+## Step 0: Detect operating system
 
+Run:
 ```bash
-test -d node_modules && echo "deps_done"
-test -f apps/web/client/.env.local && echo "env_done"
-test -f .env && echo "root_env_done"
+uname -s 2>/dev/null || echo "Windows"
 ```
 
-If all three signals are present, say: "It looks like Onlook was already set up on this machine. Let me make sure everything is still good and skip steps that are done."
+- Output starts with `Darwin` → **Mac**
+- Anything else → **Windows**
 
-## Phase 1: Prerequisites
+---
 
-Check and install each tool. Skip with a short message if already installed.
+## Step 1: Get into the project
 
-### Homebrew
-
+Check if we're already inside the Onlook repo:
 ```bash
-command -v brew
+test -f apps/web/client/package.json && echo "in_repo"
 ```
 
-If missing:
-- Say: "Installing Homebrew — your Mac's package manager. It will ask for your Mac login password. Type it and press Enter (you won't see any characters appear — that's normal)."
-- Run: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-- After install, add to PATH for Apple Silicon Macs:
-  ```bash
+If yes — great, all subsequent commands run from here. Skip to Step 2.
+
+If no — find or download it:
+
+**Mac:**
+```bash
+test -d ~/Desktop/onlook/apps && echo "exists"
+```
+If exists: `cd ~/Desktop/onlook`
+
+If not:
+```bash
+curl -L "https://github.com/martin-iliew/onlook/archive/refs/heads/main.zip" -o /tmp/onlook.zip && unzip -q /tmp/onlook.zip -d ~/Desktop && mv ~/Desktop/onlook-main ~/Desktop/onlook && cd ~/Desktop/onlook
+```
+
+**Windows:**
+```bash
+test -d ~/Desktop/onlook/apps && echo "exists"
+```
+If exists: `cd ~/Desktop/onlook`
+
+If not:
+```bash
+curl -L "https://github.com/martin-iliew/onlook/archive/refs/heads/main.zip" -o "$USERPROFILE/Downloads/onlook.zip" && unzip -q "$USERPROFILE/Downloads/onlook.zip" -d "$USERPROFILE/Desktop" && mv "$USERPROFILE/Desktop/onlook-main" "$USERPROFILE/Desktop/onlook" && cd "$USERPROFILE/Desktop/onlook"
+```
+
+If any download fails: "I couldn't download the project. Check your internet connection and try again."
+
+**All steps below run from the project root.**
+
+---
+
+## Step 2: Prerequisites
+
+Check and install each tool. Skip with a short "already installed" message if present.
+
+### Mac
+
+Run all Mac prerequisite checks and installs as a single shell block so PATH changes carry through within the same invocation:
+
+```bash
+# Ensure Homebrew is on PATH (Apple Silicon uses /opt/homebrew, Intel uses /usr/local)
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+# Install Homebrew if missing
+if ! command -v brew &>/dev/null; then
+  echo "Installing Homebrew — it will ask for your Mac password. Type it and press Enter (you won't see characters appear — that is normal)."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  # Re-load for Apple Silicon
   test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv)"
-  ```
+  # Persist for future shell sessions
+  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.bash_profile
+fi
 
-### Git
+# Git
+command -v git &>/dev/null || brew install git
 
+# Node.js
+command -v node &>/dev/null || brew install node
+
+# Bun
+if ! command -v bun &>/dev/null; then
+  curl -fsSL https://bun.sh/install | bash
+  export PATH="$HOME/.bun/bin:$PATH"
+fi
+
+echo "All tools ready"
+```
+
+If any step fails, explain it in plain language and stop.
+
+---
+
+### Windows
+
+**Git:**
 ```bash
 command -v git
 ```
+If missing: `winget install --id Git.Git -e --source winget`
 
-If missing: `brew install git`
-
-### Node.js
-
+**Node.js:**
 ```bash
 command -v node
 ```
+If missing: `winget install --id OpenJS.NodeJS -e --source winget`
 
-If missing: `brew install node`
-
-### Bun
-
+**Bun:**
 ```bash
 command -v bun
 ```
-
 If missing:
-- Say: "Installing Bun — the package manager this project uses."
-- Run: `curl -fsSL https://bun.sh/install | bash`
-- Make available immediately: `export PATH="$HOME/.bun/bin:$PATH"`
-- Verify: `bun --version`
+```bash
+powershell -Command "irm bun.sh/install.ps1 | iex" && export PATH="$USERPROFILE/.bun/bin:$PATH"
+```
 
-Say: "All tools are installed!"
+---
 
-## Phase 2: Install Dependencies
+Say: "All tools are ready!"
 
-If `node_modules` already exists, say "Dependencies already installed" and skip.
+---
+
+## Step 3: Install dependencies
+
+```bash
+test -d node_modules && echo "done"
+```
+
+If done: say "Dependencies already installed" and skip.
 
 Otherwise:
-- Say: "Installing project dependencies..."
-- Run: `bun install`
+```bash
+bun install
+```
 
-## Phase 3: Environment Config
+---
 
-If both `apps/web/client/.env.local` and `.env` already exist, say "Config already set up" and skip this whole phase.
+## Step 4: Environment config
+
+Check if both config files already exist:
+```bash
+test -f apps/web/client/.env.local && test -f packages/db/.env && echo "done"
+```
+
+If done: say "Config already set up" and skip this step.
 
 Otherwise:
-- Say: "Downloading the app configuration..."
-- Download the main config:
-  ```bash
-  curl -fsSL "https://gist.githubusercontent.com/martin-iliew/f5199022778f6eda3fc574cb5a5389a0/raw/.env.local" -o apps/web/client/.env.local
-  ```
-  If the download fails, say: "I couldn't download the config file — the link may have expired. Ask Martin for a fresh one." and stop.
 
-- Now create the root `.env` that database tools need (the variables are the same but with different names):
-  ```bash
-  grep '^SUPABASE_DATABASE_URL=' apps/web/client/.env.local > .env
-  grep '^SUPABASE_SERVICE_ROLE_KEY=' apps/web/client/.env.local >> .env
-  echo "SUPABASE_URL=$(grep '^NEXT_PUBLIC_SUPABASE_URL=' apps/web/client/.env.local | sed 's/NEXT_PUBLIC_SUPABASE_URL=//')" >> .env
-  ```
+**Get the config link:**
 
-## Phase 4: Launch
+- If `$ARGUMENTS` is a non-empty URL (starts with `http`): use it as the base URL.
+- If `$ARGUMENTS` is empty: say "I need the config link that was shared with you on Slack. Paste it here and press Enter." — then wait and use their response.
 
-Say: "Everything is ready! Starting the app now..."
+With the base URL (call it `GIST_BASE`), download both config files to their correct locations inside the project:
+
+```bash
+curl -fsSL "${GIST_BASE}/.env.local" -o apps/web/client/.env.local
+curl -fsSL "${GIST_BASE}/.env" -o packages/db/.env
+```
+
+If either download fails: "I couldn't download the config — the link may be expired. Ask Martin for a fresh one." and stop.
+
+---
+
+## Step 5: Launch
+
+Say: "Everything is set up! Starting Onlook now..."
 
 Start the dev server in the background (use run_in_background: true):
 ```bash
 bun run dev:cc
 ```
 
-Wait 5 seconds, then open the browser:
-```bash
-open http://localhost:3000
-```
+Wait 8 seconds, then open the browser:
+- **Mac:** `open http://localhost:3000`
+- **Windows:** `start http://localhost:3000`
 
-Say: "Onlook is running! Your browser should have opened to http://localhost:3000. Create a local account — just pick an email and password, it stays on your machine.
+Say: "Onlook is running! Your browser should have opened to http://localhost:3000
 
-From now on:
-- Type **/start** to launch Onlook each day
-- Type **/stop** when you're done"
+The first time, create a local account — pick any email and password. It stays on your machine, nothing is sent anywhere.
+
+From now on, each day just open Terminal (Mac) or Git Bash (Windows), navigate to the onlook folder, run `claude`, then type **/start**. When you're done, type **/stop**."
