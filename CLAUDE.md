@@ -144,3 +144,21 @@ Actionable rules for repo agents—keep diffs minimal, safe, token‑efficient.
 - Refrain from running the dev server
 - DO NOT run `db:gen`. This is reserved for the maintainer.
 - DO NOT use any type unless necessary
+
+### Designer Onboarding (Mac)
+
+This repo ships three slash commands for non-technical designers who need to get the app running locally on Mac. When a designer asks for help with setup, startup, or stopping the app — use these commands or follow the same logic.
+
+**Commands (`.claude/commands/`):**
+- `/setup` — Full first-time setup. Installs Homebrew, Git, Node, Bun, Docker Desktop; installs deps; downloads `.env.local`; starts Supabase; seeds the DB; launches the app. Idempotent — safe to re-run.
+- `/start` — Daily workflow. Ensures Docker is running, starts Supabase, starts the dev server, opens the browser.
+- `/stop` — Shuts down the dev server and Supabase cleanly.
+
+**Key facts for manual assistance:**
+- Prerequisites: Homebrew, Git, Node.js, Bun 1.3.1, Docker Desktop
+- `.env.local` lives at `apps/web/client/.env.local` — download from `https://gist.githubusercontent.com/martin-iliew/81ef4f030a8ecc418c40f2ea95ec8fe7/raw/.env.local`, then run `bun run setup:cc` to inject real Supabase keys
+- `bun run dev:cc` starts both the Next.js app (port 3000) and bridge server (port 4567)
+- `bun run backend:start` starts local Supabase via Docker (ports 54321/54322)
+- First-time DB setup: `bun run db:push` then `bun run db:seed`
+- The marker file `~/.onlook_setup_done` tracks whether DB seeding has been done
+- Use friendly, non-technical language when helping designers — they have no terminal experience
