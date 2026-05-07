@@ -1,5 +1,5 @@
 import { type ChatMessage } from '@onlook/models';
-import { useChat } from '../../../../_hooks/use-chat';
+import { useChat } from '../../../../_hooks/use-chat-switch';
 import { ChatInput } from '../chat-input';
 import { ChatMessages } from '../chat-messages';
 import { ErrorSection } from '../error';

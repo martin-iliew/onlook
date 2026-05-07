@@ -1,0 +1,25 @@
+{
+  "name": "@onlook/bridge",
+  "private": true,
+  "type": "commonjs",
+  "version": "0.0.0",
+  "description": "Claude Code bridge server — enables Onlook chat to use the Claude Code CLI instead of API keys",
+  "scripts": {
+    "dev": "bun --env-file ../client/.env.local --watch server.ts",
+    "start": "bun --env-file ../client/.env.local server.ts"
+  },
+  "dependencies": {
+    "@codesandbox/sdk": "^2.4.2",
+    "@onlook/ai": "*",
+    "@onlook/models": "*",
+    "@onlook/parser": "*",
+    "@onlook/utility": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0"
+}
