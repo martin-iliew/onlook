@@ -1,4 +1,4 @@
-import { BashEditTool, BashReadTool, CheckErrorsTool, FuzzyEditFileTool, GlobTool, GrepTool, ListBranchesTool, ListFilesTool, OnlookInstructionsTool, ReadFileTool, ReadStyleGuideTool, SandboxTool, ScrapeUrlTool, SearchReplaceEditTool, SearchReplaceMultiEditFileTool, TerminalCommandTool, TypecheckTool, WebSearchTool, WriteFileTool } from "../tools";
+import { BashEditTool, BashReadTool, CheckErrorsTool, FuzzyEditFileTool, GlobTool, GrepTool, ListBranchesTool, ListFilesTool, OidBatchMutationsTool, OidInspectElementTool, OidInsertElementTool, OidMoveElementTool, OidRemoveElementTool, OidUpdateAttributesTool, OidUpdateStyleTool, OidUpdateTextTool, OnlookInstructionsTool, ReadFileTool, ReadStyleGuideTool, SandboxTool, ScrapeUrlTool, SearchReplaceEditTool, SearchReplaceMultiEditFileTool, TerminalCommandTool, TypecheckTool, WebSearchTool, WriteFileTool } from "../tools";
 
 export const allTools = [
     ListFilesTool,
@@ -20,6 +20,14 @@ export const allTools = [
     BashEditTool,
     SandboxTool,
     TerminalCommandTool,
+    OidUpdateStyleTool,
+    OidUpdateTextTool,
+    OidUpdateAttributesTool,
+    OidInsertElementTool,
+    OidRemoveElementTool,
+    OidMoveElementTool,
+    OidInspectElementTool,
+    OidBatchMutationsTool,
 ];
 
 export const readOnlyRootTools = [
@@ -44,6 +52,14 @@ const editOnlyRootTools = [
     BashEditTool,
     SandboxTool,
     TerminalCommandTool,
+    OidUpdateStyleTool,
+    OidUpdateTextTool,
+    OidUpdateAttributesTool,
+    OidInsertElementTool,
+    OidRemoveElementTool,
+    OidMoveElementTool,
+    OidInspectElementTool,
+    OidBatchMutationsTool,
 ]
 
 export const rootTools = [...readOnlyRootTools, ...editOnlyRootTools];
