@@ -43,7 +43,29 @@ function prompt(rl: readline.Interface, question: string): Promise<string> {
     return new Promise(resolve => rl.question(question, resolve))
 }
 
-async function getRemoteKeys(): Promise<SupabaseKeys> {
+function parseEnvValue(env: string, key: string): string {
+    return env.match(new RegExp(`^${key}=(.+)`, 'm'))?.[1]?.trim() ?? ''
+}
+
+function getExistingRemoteKeys(envContent: string): SupabaseKeys | null {
+    const url = parseEnvValue(envContent, 'NEXT_PUBLIC_SUPABASE_URL')
+    const anonKey = parseEnvValue(envContent, 'NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    const serviceRoleKey = parseEnvValue(envContent, 'SUPABASE_SERVICE_ROLE_KEY')
+    const dbUrl = parseEnvValue(envContent, 'SUPABASE_DATABASE_URL')
+
+    if (url && anonKey && serviceRoleKey && dbUrl) {
+        return { url, anonKey, serviceRoleKey, dbUrl }
+    }
+    return null
+}
+
+async function getRemoteKeys(existingEnv: string): Promise<SupabaseKeys> {
+    const existing = getExistingRemoteKeys(existingEnv)
+    if (existing) {
+        console.log('✓ Supabase credentials found in .env.local — skipping prompts')
+        return existing
+    }
+
     console.log('Enter your Supabase project credentials.')
     console.log('Find them at: https://supabase.com/dashboard → your project → Settings → API\n')
 
@@ -96,11 +118,14 @@ async function main() {
         console.warn('⚠  Claude Code CLI not found. Install it from https://claude.ai/code\n')
     }
 
+    let existing = ''
+    try { existing = fs.readFileSync(ENV_FILE, 'utf-8') } catch { /* new file */ }
+
     let keys: SupabaseKeys
     let usingFallback = false
 
     if (isRemote) {
-        keys = await getRemoteKeys()
+        keys = await getRemoteKeys(existing)
         console.log('\n✓ Remote Supabase credentials received')
     } else {
         keys = getLocalKeys()
@@ -125,15 +150,22 @@ OPENROUTER_API_KEY=local-dev-unused
 CSB_API_KEY=local-dev-unused
 # end claude code mode`
 
-    let existing = ''
-    try { existing = fs.readFileSync(ENV_FILE, 'utf-8') } catch { /* new file */ }
-
     const stripped = existing
         .replace(/# Claude Code mode[\s\S]*?# end claude code mode\n?/m, '')
         .trimEnd()
 
     fs.writeFileSync(ENV_FILE, stripped ? `${stripped}\n\n${block}\n` : `${block}\n`, 'utf-8')
     console.log(`✓ Written to ${ENV_FILE}`)
+
+    const DB_ENV_FILE = path.join(ROOT, 'packages/db/.env')
+    const dbEnvContent = [
+        `SUPABASE_DATABASE_URL=${keys.dbUrl}`,
+        `SUPABASE_SERVICE_ROLE_KEY=${keys.serviceRoleKey}`,
+        `SUPABASE_URL=${keys.url}`,
+        '',
+    ].join('\n')
+    fs.writeFileSync(DB_ENV_FILE, dbEnvContent, 'utf-8')
+    console.log(`✓ Written to ${DB_ENV_FILE}`)
 
     console.log('\n─────────────────────────────────────────')
     if (isRemote) {
