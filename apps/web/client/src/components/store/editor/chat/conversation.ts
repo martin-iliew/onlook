@@ -114,10 +114,15 @@ export class ConversationManager {
             console.error('No conversation found');
             return;
         }
-        const title = await api.chat.conversation.generateTitle.mutate({
-            conversationId: this.current?.id,
-            content,
-        });
+        let title: string | null | undefined;
+        try {
+            title = await api.chat.conversation.generateTitle.mutate({
+                conversationId: this.current?.id,
+                content,
+            });
+        } catch {
+            return;
+        }
         if (!title) {
             console.error('Error generating conversation title. No title returned.');
             return;
